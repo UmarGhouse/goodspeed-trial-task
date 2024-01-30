@@ -1,70 +1,95 @@
-# Getting Started with Create React App
+# Tech Stack
+
+This project uses `React v18`
+
+# Getting Started
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Available Scripts
+First, install all packages with:
 
-In the project directory, you can run:
+```
+npm install
+```
 
-### `npm start`
+Then, to run the server, simply run:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```
+npm run start
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Visit [localhost:3000](http://localhost:3000) to view and use the application.
 
-### `npm test`
+# Notes
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The `App.js` file is the entry point to this app. 
 
-### `npm run build`
+The `/components` folder contains a few other components - these are mostly presentational; i.e. they don't do any further data processing.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Most of the magic happens in the `./src/utils/formatData.js` file. A few additional notes on my thought process are:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- Based on the Loom videos, I understood that the `Number of Cabinets Per Circuit` variable decides:
+    - How high a given circuit goes
+    - Whether a single column of cabinets needs multiple circuit boxes
+    
+- Given the above, I divided the entire grid into "Sections", where a section is defined as an area of the grid that contains, _at most_, 1 circuit box per column. Given the constraints of the task, this means that each section covers the full `width`, but adjusts its `height` to fit just 1 circuit box per column.
+    - Each section is stored as an object of shape: `{ height: Number, columns: Array }`
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Thereafter, each section contains a collection of "Columns"
+    - This means that the app renders one column at a time, per section
+    - The number of columns in a section is equivalent to the `width` setting.
 
-### `npm run eject`
+- Each column has data describing the column, as well as a collection of "Rows".
+    - i.e. Each column is an object that takes the shape:
+    ```js
+    {
+      color: String, // hex colour code, we use color-seed package to get predictable colors for columns
+      hasCircuitBox: Boolean, // determines if this column needs a circuit box in cases where `height` <= 2
+      circuitboxId: String,
+      rows: Array,
+    }
+    ```
+    - To render a column, the app renders each row (i.e. one cabinet at a time)
+    - The number of rows in a column is equivalent to the `height` setting.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- Rows are final part of the data, similar to columns, this is an object that contains data that described the specific cabinet + helps render the `circuit` 
+    - Each row takes the shape:
+    ```js
+    {
+      value: Number, // The number on the cabinet
+      arrowStart: String, // circuit box ID / previous row dot ID
+      arrowEnd: String, // current row dot ID
+      color: String, // same as column color
+    }
+    ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+<details>
+  <summary>Overall, the data takes the following shape (expand section to view)</summary>
+  
+  ```js
+  // Array of sections
+  [
+    {
+      height: 5,
+      // Array of columns in this section. columns.length === width
+      columns: [
+        color: '#123456',
+        hasCircuitBox: true,
+        circuitboxId: `${sectionIndex}-circuit-box-${columnIndex}`,
+        // Array of rows in this column. rows.length === height
+        rows: [
+          {
+            value: 1,
+            arrowStart: column.circuitboxId || `${sectionIndex}-${columnIndex}-row-${rowIndex - 1}-dot`,
+            arrowEnd: `${sectionIndex}-${columnIndex}-row-${rowIndex}-dot`,
+            color: column.color,
+          }
+        ],
+      ]
+    },
+    { /*...*/ },
+  ]
+  ```
+</details>
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- The circuits themselves are drawn using the [`react-xarrows`](https://github.com/Eliav2/react-xarrows) package.
