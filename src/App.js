@@ -12,14 +12,15 @@ function App() {
 
   // Input elements to control config
   const controls = [
-    { label: 'Width', value: width, onChange: setWidth },
-    { label: 'Height', value: height, onChange: setHeight },
-    { label: 'Cabinets per Circuit', value: cabinetsPerCircuit, onChange: setCabinetsPerCircuit },
+    { label: 'Number of Cabinets Wide:', value: width, onChange: setWidth },
+    { label: 'Number of Cabinets Tall:', value: height, onChange: setHeight },
+    { label: 'Number of Cabinets per Circuit', value: cabinetsPerCircuit, onChange: setCabinetsPerCircuit },
   ]
 
   return (
     <div className="container mx-auto mt-6">
-      <div className="m-auto p-4 w-full min-h-48 bg-slate-400 shadow-lg rounded-lg text-slate-100 align-middle">
+      <h1 className='text-white text-4xl font-bold text-center mt-4 mb-8'>MicroLED Configuration Tool</h1>
+      <div className="m-auto p-4 w-full min-h-48 bg-[#526D82] shadow-md shadow-slate-400 rounded-lg text-slate-100">
         {controls.map((control) => (
           <Input
             label={control.label}
@@ -29,7 +30,7 @@ function App() {
         ))}
 
         {/* GRID */}
-        <div className='border-2 px-4 py-1 mt-2 w-full h-full flex flex-col-reverse'>
+        <div className='border-2 border-[#9DB2BF] px-4 py-1 mt-6 w-full h-full flex flex-col-reverse'>
           {sectionArray.map((section, sectionIndex) => (
             <Section
               section={section}
