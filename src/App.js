@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import Xarrow from "react-xarrows";
+import Input from './components/Input';
+import Section from './components/Section';
 
 function App() {
   const [width, setWidth] = useState(5);
@@ -77,64 +78,32 @@ function App() {
     return sectionData;
   });
 
+  // Input elements to control config
+  const controls = [
+    { label: 'Width', value: width, onChange: setWidth },
+    { label: 'Height', value: height, onChange: setHeight },
+    { label: 'Cabinets per Circuit', value: cabinetsPerCircuit, onChange: setCabinetsPerCircuit },
+  ]
+
   return (
     <div className="container mx-auto mt-6">
       <div className="m-auto p-4 w-full min-h-48 bg-slate-400 shadow-lg rounded-lg text-slate-100 align-middle">
-        <label className="mt-4">
-          Width
-          <input type="number" min={1} className="rounded-lg p-4 w-full text-black" value={width} onChange={(e) => setWidth(Math.max(e.target.value, 1))} />
-        </label>
-        <label className="mt-4">
-          Height
-          <input type="number" min={1} className="rounded-lg p-4 w-full text-black" value={height} onChange={(e) => setHeight(Math.max(e.target.value, 1))} />
-        </label>
-        <label className="mt-4">
-          Cabinets per Circuit
-          <input type="number" min={1} className="rounded-lg p-4 w-full text-black" value={cabinetsPerCircuit} onChange={(e) => setCabinetsPerCircuit(Math.max(e.target.value, 1))} />
-        </label>
+        {controls.map((control) => (
+          <Input
+            label={control.label}
+            value={control.value}
+            onChange={control.onChange}
+          />
+        ))}
 
         {/* GRID */}
         <div className='border-2 px-4 py-1 mt-2 w-full h-full flex flex-col-reverse'>
           {sectionArray.map((section, sectionIndex) => (
-            <div key={`section-${sectionIndex}`} id={`section-${sectionIndex}`} className='flex w-full'>
-              {section.columns.map((column, colIndex) => (
-                <div key={`col-${colIndex}`} style={{ width: `${100 / width}%` }} className='flex flex-col-reverse'>
-                  {column.rows.map((row, rowIndex) => (
-                    <div key={`row-${row}`} className='aspect-video w-full border-2 p-1 relative flex items-center justify-center'>
-                      {/* COLUMN 1, BOX 1 */}
-                      <span className='absolute top-0 left-1'>{row.value}</span>
-                      <div className='rounded-full w-4 h-4 bg-slate-800 border-2 border-white' id={`${sectionIndex}-${colIndex}-row-${rowIndex}-dot`} />
-                      {rowIndex === 0 ? (
-                        <>
-                          {column.hasCircuitBox ? (
-                            <div className='w-8 h-4 absolute bottom-1 left-1' id={column.circuitboxId} style={{ backgroundColor: column.color }} />
-                          ) : null}
-
-                          <Xarrow
-                            start={row.arrowStart}
-                            end={row.arrowEnd}
-                            showHead={false}
-                            startAnchor={"right"}
-                            endAnchor={"bottom"}
-                            color={row.color}
-                          />
-                        </>
-                      ) : (
-                        <Xarrow
-                          start={row.arrowStart}
-                          end={row.arrowEnd}
-                          startAnchor={"top"}
-                          endAnchor={"bottom"}
-                          strokeWidth={3}
-                          headSize={4}
-                          color={row.color}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+            <Section
+              section={section}
+              width={width}
+              key={`section-${sectionIndex}`}
+            />
           ))}
         </div>
       </div>
