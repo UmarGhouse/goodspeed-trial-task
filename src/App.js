@@ -3,8 +3,8 @@ import Xarrow from "react-xarrows";
 
 function App() {
   const [width, setWidth] = useState(5);
-  const [height, setHeight] = useState(5);
-  const [cabinetsPerCircuit, setCabinetsPerCircuit] = useState(10);
+  const [height, setHeight] = useState(7);
+  const [cabinetsPerCircuit, setCabinetsPerCircuit] = useState(5);
 
   const numSections = Math.ceil(height / cabinetsPerCircuit);
   const lastSectionHeight = height - (cabinetsPerCircuit * (numSections - 1));
@@ -28,31 +28,50 @@ function App() {
     for (let i = 0; i < width; i++) {
       const column = {
         color: generateColor(),
+        hasCircuitBox: true,
+        circuitboxId: `${sectionIndex}-circuit-box-${i}`,
         rows: [],
       }
 
-      // For each column, push rows with cabinet numbers
+      // Check, at the start of the column, if circuit counter wil become too large
+      if (circuitCounter + sectionData.height > cabinetsPerCircuit) {
+        circuitCounter = 0;
+      } else {
+        // If not, adjust column color to previous column color, unless this is the first column
+        if (i > 0) column.color = sectionData.columns[i - 1].color;
+      };
+
+      // For each column, push rows with cabinet data
       for (let j = 0; j < sectionData.height; j++) {
-        column.rows.push(counter);
+        const row = {
+          value: counter,
+          arrowStart: j === 0 ? column.circuitboxId : `${sectionIndex}-${i}-row-${j - 1}-dot`, // circuit box ID / previous row dot ID
+          arrowEnd: `${sectionIndex}-${i}-row-${j}-dot`, // current row dot ID
+          color: column.color, // column color
+        };
+
+        if (
+          sectionData.height <= 2 // Section height is 2 or less
+          && i !== 0 // column is NOT the first column
+          && circuitCounter > 0 // This is not the first node in the circuit
+          && circuitCounter + sectionData.height <= cabinetsPerCircuit // circuitCounter, at the end of col, will still be less than cabinetsPerCircuit
+          && j === 0 // row is first row
+        ) {
+          // Remove circuit box only if previous column has one and reset arrowStart for this row
+          if (sectionData.columns[i - 1].hasCircuitBox) {
+            column.hasCircuitBox = false;
+            row.arrowStart = sectionData.columns[i - 1].circuitboxId;
+          }
+        }
+
+        column.rows.push(row); // Save row
+
+        // Increment counters
         circuitCounter++;
         counter++;
       }
 
-      // If there are more than 2 cabinets per circuit, i.e. in this section
-      if (sectionData.height > 2) {
-        // First, make sure we're not on the first column
-        // Then check that the circuit counter, at the end of the column is within range
-        if (i > 0 && circuitCounter <= cabinetsPerCircuit) {
-          column.color = sectionData.columns[i - 1].color;
-        }
-
-        // If, by the end of the column, circuit counter is too large, reset it to the column height
-        if (circuitCounter > cabinetsPerCircuit) {
-          circuitCounter = sectionData.height;
-        };
-      }
-
-      sectionData.columns.push(column);
+      sectionData.columns.push(column); // Save column
     }
 
     return sectionData;
@@ -78,34 +97,37 @@ function App() {
         <div className='border-2 px-4 py-1 mt-2 w-full h-full flex flex-col-reverse'>
           {sectionArray.map((section, sectionIndex) => (
             <div key={`section-${sectionIndex}`} id={`section-${sectionIndex}`} className='flex w-full'>
-              {section.columns.map((cols, colIndex) => (
+              {section.columns.map((column, colIndex) => (
                 <div key={`col-${colIndex}`} style={{ width: `${100 / width}%` }} className='flex flex-col-reverse'>
-                  {cols.rows.map((row, rowIndex) => (
+                  {column.rows.map((row, rowIndex) => (
                     <div key={`row-${row}`} className='aspect-video w-full border-2 p-1 relative flex items-center justify-center'>
                       {/* COLUMN 1, BOX 1 */}
-                      <span className='absolute top-0 left-1'>{row}</span>
+                      <span className='absolute top-0 left-1'>{row.value}</span>
                       <div className='rounded-full w-4 h-4 bg-slate-800 border-2 border-white' id={`${sectionIndex}-${colIndex}-row-${rowIndex}-dot`} />
                       {rowIndex === 0 ? (
                         <>
-                          <div className='w-8 h-4 absolute bottom-1 left-1' id={`${sectionIndex}-circuit-box-${colIndex}`} style={{ backgroundColor: cols.color }} />
+                          {column.hasCircuitBox ? (
+                            <div className='w-8 h-4 absolute bottom-1 left-1' id={column.circuitboxId} style={{ backgroundColor: column.color }} />
+                          ) : null}
+
                           <Xarrow
-                            start={`${sectionIndex}-circuit-box-${colIndex}`}
-                            end={`${sectionIndex}-${colIndex}-row-${rowIndex}-dot`}
+                            start={row.arrowStart}
+                            end={row.arrowEnd}
                             showHead={false}
                             startAnchor={"right"}
                             endAnchor={"bottom"}
-                            color={cols.color}
+                            color={row.color}
                           />
                         </>
                       ) : (
                         <Xarrow
-                          start={`${sectionIndex}-${colIndex}-row-${rowIndex - 1}-dot`}
-                          end={`${sectionIndex}-${colIndex}-row-${rowIndex}-dot`}
+                          start={row.arrowStart}
+                          end={row.arrowEnd}
                           startAnchor={"top"}
                           endAnchor={"bottom"}
                           strokeWidth={3}
                           headSize={4}
-                          color={cols.color}
+                          color={row.color}
                         />
                       )}
                     </div>
