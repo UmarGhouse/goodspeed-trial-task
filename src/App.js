@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import * as colorSeed from "color-seed";
 import Input from './components/Input';
 import Section from './components/Section';
 
@@ -9,11 +10,6 @@ function App() {
 
   const numSections = Math.ceil(height / cabinetsPerCircuit);
   const lastSectionHeight = height - (cabinetsPerCircuit * (numSections - 1));
-
-  const generateColor = () => {
-    const string = Math.random().toString(16)
-    return '#' + string.substring(9);
-  }
 
   let counter = 1;
   const sectionArray = Array(numSections).fill({}, 0).map((_, sectionIndex) => {
@@ -26,11 +22,11 @@ function App() {
     let circuitCounter = 0; // Keeps track of how many circuits are connected so far
 
     // cycle through columns to add rows
-    for (let i = 0; i < width; i++) {
+    for (let col = 0; col < width; col++) {
       const column = {
-        color: generateColor(),
+        color: colorSeed.getColor(counter), // Use color-seed package to get predictable colors for columns
         hasCircuitBox: true,
-        circuitboxId: `${sectionIndex}-circuit-box-${i}`,
+        circuitboxId: `${sectionIndex}-circuit-box-${col}`,
         rows: [],
       }
 
@@ -39,33 +35,33 @@ function App() {
         circuitCounter = 0;
       } else {
         // If not, adjust column color to previous column color, unless this is the first column
-        if (i > 0) column.color = sectionData.columns[i - 1].color;
+        if (col > 0) column.color = sectionData.columns[col - 1].color;
       };
 
       // For each column, push rows with cabinet data
-      for (let j = 0; j < sectionData.height; j++) {
-        const row = {
+      for (let row = 0; row < sectionData.height; row++) {
+        const rowData = {
           value: counter,
-          arrowStart: j === 0 ? column.circuitboxId : `${sectionIndex}-${i}-row-${j - 1}-dot`, // circuit box ID / previous row dot ID
-          arrowEnd: `${sectionIndex}-${i}-row-${j}-dot`, // current row dot ID
+          arrowStart: row === 0 ? column.circuitboxId : `${sectionIndex}-${col}-row-${row - 1}-dot`, // circuit box ID / previous row dot ID
+          arrowEnd: `${sectionIndex}-${col}-row-${row}-dot`, // current row dot ID
           color: column.color, // column color
         };
 
         if (
           sectionData.height <= 2 // Section height is 2 or less
-          && i !== 0 // column is NOT the first column
+          && col !== 0 // column is NOT the first column
           && circuitCounter > 0 // This is not the first node in the circuit
           && circuitCounter + sectionData.height <= cabinetsPerCircuit // circuitCounter, at the end of col, will still be less than cabinetsPerCircuit
-          && j === 0 // row is first row
+          && row === 0 // row is first row
         ) {
           // Remove circuit box only if previous column has one and reset arrowStart for this row
-          if (sectionData.columns[i - 1].hasCircuitBox) {
+          if (sectionData.columns[col - 1].hasCircuitBox) {
             column.hasCircuitBox = false;
-            row.arrowStart = sectionData.columns[i - 1].circuitboxId;
+            rowData.arrowStart = sectionData.columns[col - 1].circuitboxId;
           }
         }
 
-        column.rows.push(row); // Save row
+        column.rows.push(rowData); // Save row
 
         // Increment counters
         circuitCounter++;
