@@ -12,9 +12,9 @@ function App() {
 
   // Input elements to control config
   const controls = [
-    { label: 'Number of Cabinets Wide:', value: width, onChange: setWidth },
-    { label: 'Number of Cabinets Tall:', value: height, onChange: setHeight },
-    { label: 'Number of Cabinets per Circuit', value: cabinetsPerCircuit, onChange: setCabinetsPerCircuit },
+    { key: 1,label: 'Number of Cabinets Wide:', value: width, onChange: setWidth },
+    { key: 2,label: 'Number of Cabinets Tall:', value: height, onChange: setHeight },
+    { key: 3,label: 'Number of Cabinets per Circuit', value: cabinetsPerCircuit, onChange: setCabinetsPerCircuit },
   ]
 
   return (
@@ -23,6 +23,7 @@ function App() {
       <div className="m-auto p-4 w-full min-h-48 bg-[#526D82] shadow-md shadow-slate-400 rounded-lg text-slate-100">
         {controls.map((control) => (
           <Input
+            key={control.key}
             label={control.label}
             value={control.value}
             onChange={control.onChange}
